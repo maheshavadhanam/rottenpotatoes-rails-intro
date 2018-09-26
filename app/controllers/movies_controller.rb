@@ -11,28 +11,38 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.uniq.pluck(:rating)
-    if params[:ratings] == nil
-      @boxes = []
-    else 
-      @boxes = params[:ratings]
+    if session[:colm] == nil or (params[:colm]!=session[:colm] and params[:colm]!=nil)
+      if params[:colm] == nil and session[:colm] == nil
+        session[:colm] = ""
+      else
+        session[:colm] = params[:colm]
+      end
+    end 
+    if session[:ratings] == nil or params[:commit]!=nil
+      if params[:ratings] == nil
+        session[:ratings] = []
+      else 
+        session[:ratings] = params[:ratings]
+      end
     end
-    if params[:colm] == "movie"
-      if params[:ratings].blank?
+    @all_ratings = Movie.uniq.pluck(:rating)
+    @boxes = session[:ratings]
+    if session[:colm] == "movie"
+      if session[:ratings].blank?
         @movies = Movie.order(:title).all
       else
         @movies = Movie.order(:title).select {|i| @boxes.include?(i.rating)?true:false}
       end
       @css_valid = 1
-    elsif params[:colm] == "releasedate"
-      if params[:ratings].blank?
+    elsif session[:colm] == "releasedate"
+      if session[:ratings].blank?
         @movies = Movie.order(:release_date).all
       else
         @movies = Movie.order(:release_date).select {|i| @boxes.include?(i.rating)?true:false}
       end
       @css_valid = 0
     else 
-      if not params[:ratings].blank?
+      if not session[:ratings].blank?
         @movies = Movie.all.select {|i| @boxes.include?(i.rating)?true:false}
       else 
         @movies = Movie.all
